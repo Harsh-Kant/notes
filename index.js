@@ -1,5 +1,6 @@
 const express = require("express")
 const cors = require("cors");
+const { authMiddleware } = require("./middleware")
 const jwt = require("jsonwebtoken")
 
 const app = express()
@@ -52,24 +53,8 @@ app.post("/signin", (req, res)=>{
     })
 })
 
-app.post("/notes", (req, res)=>{
-    const token = req.headers.token;
-    if(!token){
-        res.status(403).json({
-            message: "You are not loggen in!"
-        })
-        return;
-    }
-    const decoded = jwt.verify(token, "harsh1234");
-    const username = decoded.username;
-
-    if(!username){
-        res.status(403).json({
-            message: "malformed token"
-        })
-        return;
-    }
-
+app.post("/notes", authMiddleware, (req, res)=>{
+    const username = req.username;
     const note = req.body.note;
     notes.push({note, username});
     res.json({
@@ -77,24 +62,8 @@ app.post("/notes", (req, res)=>{
     })
 })
 
-app.get("/notes", (req, res)=>{
-    const token = req.headers.token;
-    if(!token){
-        res.status(403).json({
-            message: "You are not loggen in!"
-        })
-        return;
-    }
-    const decoded = jwt.verify(token, "harsh1234");
-    const username = decoded.username;
-
-    if(!username){
-        res.status(403).json({
-            message: "malformed token"
-        })
-        return;
-    }
-
+app.get("/notes", authMiddleware, (req, res)=>{
+    const username = req.username;
     const userNotes = notes.filter(note=>note.username===username);
 
     res.json({
